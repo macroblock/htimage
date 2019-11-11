@@ -14,12 +14,14 @@ import (
 
 func main() {
 	in := []string{
+		"100x100.png",
 		"150x100.png",
 		"300x200.png",
 		"400x268.jpg",
 		"450x675.jpg",
 	}
-	reader, err := os.Open(in[0])
+	_ = in
+	reader, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

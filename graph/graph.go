@@ -10,6 +10,8 @@ import (
 	"github.com/fogleman/gg"
 )
 
+const extOffs = 0
+
 var angleSlice = []float64{15, 75, 0, 45}
 var layer []*gg.Context
 var radian = math.Pi / 180
@@ -27,33 +29,42 @@ func TestFilter(step, radius float64, src image.Image) (image.Image, error) {
 
 	// dst := image.NewRGBA(image.Rect(0, 0, int(float64(w)*step+step), int(float64(h)*step+step)))
 
-	dst := gg.NewContext(int(float64(w)*step+step), int(float64(h)*step+step))
+	dst := gg.NewContext(int(float64(w)*step+step+extOffs*2), int(float64(h)*step+step*2+extOffs*2))
 	dst.SetRGBA255(0, 0, 0, 255)
 	dst.Clear()
 
 	for range angleSlice {
 		x := gg.NewContext(int(float64(w)*step+step), int(float64(h)*step+step))
-		x.SetRGBA(0, 0, 0, 0)
+		x.SetRGBA(1, 0, 0, 0)
 		x.Clear()
 		layer = append(layer, x)
 	}
 
 	for i, angle := range angleSlice {
+		// angle = angle
 		cosAng := math.Cos(angle * radian)
 		sinAng := math.Sin(angle * radian)
 
-		w1 := float64(w) * math.Cos(angle*radian)
-		w2 := float64(w) * math.Sin(angle*radian)
+		// w1 := float64(w) * math.Cos(angle*radian)
+		// w2 := float64(w) * math.Sin(angle*radian)
 
-		h1 := float64(h) * math.Sin((angle)*radian)
-		h2 := float64(h) * math.Cos((angle)*radian)
+		// h1 := float64(h) * math.Sin((angle)*radian)
+		// h2 := float64(h) * math.Cos((angle)*radian)
 
-		w0 := w1 + w2
+		// w0 := w1 + w2
+		// h0 := h1 + h2
+
+		// wOffs := h1 * math.Cos(angle*radian)
+		// hOffs := float64(h) - h1*math.Sin(angle*radian)
+		// _, _ = wOffs, hOffs
+		w1 := float64(h) * sinAng
+		w2 := float64(w) * cosAng
+		h1 := float64(h) * cosAng
+		h2 := float64(w) * sinAng
 		h0 := h1 + h2
-
-		wOffs := h1 * math.Cos(angle*radian)
-		hOffs := float64(h) - h1*math.Sin(angle*radian)
-		_, _ = wOffs, hOffs
+		w0 := w1 + w2
+		wOffs := -w1 * cosAng
+		hOffs := +w1 * sinAng
 
 		// step = 10.0
 
@@ -65,8 +76,13 @@ func TestFilter(step, radius float64, src image.Image) (image.Image, error) {
 			for x < w0 {
 				x++
 
-				xImg := x*cosAng + y*sinAng - wOffs
-				yImg := x*sinAng - y*cosAng + hOffs
+				// xImg := x*cosAng + y*sinAng - wOffs
+				// yImg := x*sinAng - y*cosAng + hOffs
+				// xImgInt := int(math.Round(xImg))
+				// yImgInt := int(math.Round(yImg))
+
+				xImg := wOffs + x*cosAng + y*sinAng // wOffs + x*cosAng - y*sinAng
+				yImg := hOffs - x*sinAng + y*cosAng
 				xImgInt := int(math.Round(xImg))
 				yImgInt := int(math.Round(yImg))
 
@@ -105,7 +121,7 @@ func TestFilter(step, radius float64, src image.Image) (image.Image, error) {
 				// fmt.Println(rr, gg, bb)
 				// fmt.Println(cc, mm, yy, kk, lum, " --- ")
 				layer[i].SetRGBA(rr, rr, rr, 1)
-				layer[i].DrawCircle(xImg*step+step/2, yImg*step+step/2, rad)
+				layer[i].DrawCircle(xImg*step+step/2+extOffs, yImg*step+step/2+extOffs, rad)
 				layer[i].Fill()
 			}
 			y++
